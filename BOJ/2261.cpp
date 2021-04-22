@@ -1,6 +1,7 @@
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+#define _USE_MATH_DEFINES
 
 #include <algorithm>
 #include <cmath>
@@ -14,76 +15,65 @@
 #include <deque>
 using namespace std;
 
-#define f(i,n) for(int i=0;i<n;i++)
 #define all(v) (v).begin(),(v).end()
 using pii = pair<int, int>;
 using lint = long long;
 
 const int MOD = 1e9 + 7, INF = 987654321;
+const lint LINF = 987654321987654321;
 const int dr[] = { -1, 0, 1, 0 };
 const int dc[] = { 0, -1, 0, 1 };
-const double PI = 3.14159265359;
+const int mxn = 100000;
 
 int tc, cnt;
 int n;
-pii arr[100000];
+pii arr[mxn];
 
-lint distance(pii a, pii b) {
+int getSqDis(pii a, pii b) {
 	return (a.first - b.first) * (a.first - b.first) + (a.second - b.second) * (a.second - b.second);
 }
 
-bool cmpy(pii a, pii b) {
-	return a.second < b.second;
-}
-
-lint find_min(int l, int r) {
-	lint ret = 10LL * INF;
-	lint tmp;
+int find_min(int l, int r) {
+	int ret = INF;
 	for (int i = l; i < r; i++) {
 		for (int j = i + 1; j <= r; j++) {
-			tmp = distance(arr[i], arr[j]);
-			ret = min(ret, tmp);
+			ret = min(ret, getSqDis(arr[i], arr[j]));
 		}
 	}
 	return ret;
 }
 
-lint solve(int l, int r) {
-	if (r == l)
-		return INF * 10LL;
+int solve(int l, int r) {
+	if (l == r)
+		return INF;
 	if (r - l <= 2) {
 		return find_min(l, r);
 	}
 
 	int m = (l + r) / 2;
+	int ret = min(solve(l, m-1), solve(m + 1, r));
+	int dist;
+	vector<pii> next;
 
-	lint left = solve(l, m-1);
-	lint right = solve(m + 1, r);
-	lint ret = min(left, right);
-	lint cur_distance;
-	vector<pii> tmp;
-	
 	for (int i = l; i <= r; i++) {
-		cur_distance = arr[i].first - arr[m].first;
+		dist = arr[i].first - arr[m].first;
 
-		if (cur_distance*cur_distance <= ret) {
-			tmp.push_back(arr[i]);
-		}
+		if (dist*dist <= ret)
+			next.push_back({ arr[i].second, arr[i].first });
 	}
 
-	sort(all(tmp), cmpy);
+	sort(all(next));
 
-	for (int i = 0; i < tmp.size() - 1; i++) {
-		for (int j = i + 1; j < tmp.size(); j++) {
-			cur_distance = tmp[i].second - tmp[j].second;
+	for (int i = 0; i < next.size() - 1; i++) {
+		for (int j = i + 1; j < next.size(); j++) {
+			dist = next[i].first - next[j].first;
 
-			if (ret <= cur_distance * cur_distance)
+			if (ret <= dist * dist)
 				break;
-				
-			ret = min(ret, distance(tmp[i], tmp[j]));
+
+			ret = min(ret, getSqDis(next[i], next[j]));
 		}
 	}
-
 	return ret;
 }
 

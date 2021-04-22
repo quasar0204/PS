@@ -1,6 +1,7 @@
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+#define _USE_MATH_DEFINES
 
 #include <algorithm>
 #include <cmath>
@@ -14,64 +15,61 @@
 #include <deque>
 using namespace std;
 
-#define f(i,n) for(int i=0;i<n;i++)
 #define all(v) (v).begin(),(v).end()
 using pii = pair<int, int>;
 using lint = long long;
+using pll = pair<lint, lint>;
 
 const int MOD = 1e9 + 7, INF = 987654321;
+const lint LINF = 987654321987654321;
 const int dr[] = { -1, 0, 1, 0 };
 const int dc[] = { 0, -1, 0, 1 };
-const double PI = 3.14159265359;
-
+const int mxn = 100001;
 int tc, cnt;
 int n;
-int arr[100000];
+lint arr[mxn], sum[mxn];
 
-lint solve(int l, int r) {
-	if (r == l) {
-		return 1LL* arr[l] * arr[l];
-	}
 
-	int m = (l + r) / 2;
+pll solve(int left, int right) {
+	if (left > right)
+		return { 0, LINF };
+	if (left == right)
+		return { arr[left], arr[left] };
 
-	lint left = solve(l, m);
-	lint right = solve(m+1, r);
+	int mid = (left + right) / 2;
+	pll leftPair = solve(left, mid);
+	pll rightPair = solve(mid + 1, right);
 
-	lint cur_sum = arr[m] + arr[m+1];
-	int cur_min = min(arr[m], arr[m + 1]);
-	lint mid = cur_sum * cur_min;
+	int curLeft = mid;
+	int curRight = mid + 1;
+	lint curMin = min(arr[curLeft], arr[curRight]);
+	pll between = {sum[curRight] - sum[curLeft-1], curMin};
 
-	int idx_l = m;
-	int idx_r = m + 1;
-
-	while (l < idx_l && idx_r < r) {
-		if (arr[idx_l - 1] < arr[idx_r + 1]) {
-			idx_r++;
-			cur_min = min(cur_min, arr[idx_r]);
-			cur_sum += arr[idx_r];
+	while (left < curLeft || curRight < right) {
+		if ((curLeft != left) && (curRight == right || arr[curLeft - 1] >= arr[curRight + 1])) {
+			curLeft--;
+			curMin = min(curMin, arr[curLeft]);
+			if ((sum[curRight] - sum[curLeft - 1]) * curMin > between.first * between.second)
+				between = { sum[curRight] - sum[curLeft - 1], curMin };
 		}
 		else {
-			idx_l--;
-			cur_min = min(cur_min, arr[idx_l]);
-			cur_sum += arr[idx_l];
+			curRight++;
+			curMin = min(curMin, arr[curRight]);
+			if ((sum[curRight] - sum[curLeft - 1]) * curMin > between.first * between.second)
+				between = { sum[curRight] - sum[curLeft - 1], curMin };
 		}
-		mid = max(mid, cur_sum*cur_min);
 	}
-	while (l < idx_l) {
-		idx_l--;
-		cur_min = min(cur_min, arr[idx_l]);
-		cur_sum += arr[idx_l];
-		mid = max(mid, cur_sum*cur_min);
-	}
-	while (idx_r < r) {
-		idx_r++;
-		cur_min = min(cur_min, arr[idx_r]);
-		cur_sum += arr[idx_r];
-		mid = max(mid, cur_sum*cur_min);
-	}
-	return max(mid, max(left, right));
+
+	if (between.first * between.second >= leftPair.first * leftPair.second
+		&& between.first * between.second >= rightPair.first * rightPair.second)
+		return between;
+	else if (between.first * between.second <= leftPair.first * leftPair.second
+		&& leftPair.first * leftPair.second >= rightPair.first * rightPair.second)
+		return leftPair;
+	else
+		return rightPair;
 }
+
 
 int main() {
 #ifndef ONLINE_JUDGE
@@ -80,10 +78,13 @@ int main() {
 	ios_base::sync_with_stdio(false); cin.tie(0); cout.tie(0);
 	//code start
 	cin >> n;
-	for (int i = 0; i < n; i++)
+	for (int i = 1; i <= n; i++) {
 		cin >> arr[i];
+		sum[i] = sum[i - 1] + arr[i];
+	}
 
-	cout << solve(0, n - 1);
+	pll ans = solve(1, n);
+	cout << ans.first * ans.second;
 
 	//code end
 	return 0;

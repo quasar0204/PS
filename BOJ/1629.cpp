@@ -1,6 +1,7 @@
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+#define _USE_MATH_DEFINES
 
 #include <algorithm>
 #include <cmath>
@@ -14,36 +15,33 @@
 #include <deque>
 using namespace std;
 
-#define f(i,n) for(int i=0;i<n;i++)
 #define all(v) (v).begin(),(v).end()
 using pii = pair<int, int>;
 using lint = long long;
 
 const int MOD = 1e9 + 7, INF = 987654321;
+const lint LINF = 987654321987654321;
 const int dr[] = { -1, 0, 1, 0 };
 const int dc[] = { 0, -1, 0, 1 };
-const double PI = 3.14159265359;
 
 int tc, cnt;
 int n;
+
 lint A, B, C;
 
-lint solve(lint a, lint b, lint r) {
+lint solve(lint a, lint b, lint c) {
 	if (b == 0)
-		return r*1 % C;
+		return 1LL;
 	if (b == 1)
-		return (r % C)*(a % C) % C;
+		return a;
 
-	lint ret = r;
-	if (b % 2 == 0) {
-		lint tmp = solve(a, b / 2, r) % C;
-		ret = ((r %C) * (tmp * tmp %C)) % C;
+	lint tmp = solve(a, b / 2, c) % c;
+	lint ret = (tmp * tmp) % c;
+	if (b % 2) {
+		ret = (ret * a) % c;
 	}
-	else {
-		lint tmp = solve(a, b / 2 , r) % C;
-		ret = (r%C) * (((tmp * tmp) %C) * (a % C) % C);
-	}
-	return ret % C;
+
+	return ret;
 }
 
 int main() {
@@ -54,8 +52,7 @@ int main() {
 	//code start
 	cin >> A >> B >> C;
 
-	cout << solve(A, B, 1);
-
+	cout << solve(A % C, B, C);
 	//code end
 	return 0;
 }

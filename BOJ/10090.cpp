@@ -1,6 +1,7 @@
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+#define _USE_MATH_DEFINES
 
 #include <algorithm>
 #include <cmath>
@@ -14,64 +15,84 @@
 #include <deque>
 using namespace std;
 
-#define f(i,n) for(int i=0;i<n;i++)
 #define all(v) (v).begin(),(v).end()
 using pii = pair<int, int>;
 using lint = long long;
 
 const int MOD = 1e9 + 7, INF = 987654321;
+const lint LINF = 987654321987654321;
 const int dr[] = { -1, 0, 1, 0 };
 const int dc[] = { 0, -1, 0, 1 };
-const double PI = 3.14159265359;
 
 lint tc, cnt;
 int n;
-int arr[1000000];
-int tmp[1000000];
 
-void merge(int l, int m, int r) {
-	int idx1 = l;
-	int idx2 = m;
-	int idx3 = l;
+class Seg {
+public:
+	int leaf = 1;
+	vector<int> tree;
 
-	while (idx1 < m && idx2 < r) {
-		if (arr[idx2] > arr[idx1]) {
-			tmp[idx3] = arr[idx1];
-			idx3++; idx1++;
+	int init(const vector<int >& arr, int left, int right, int node) {
+		if (left == right) {
+			if (left < arr.size())
+				return tree[node] = arr[left];
+			else
+				return tree[node] = 0;
 		}
-		else {
-			tmp[idx3] = arr[idx2];
-			idx3++; idx2++;
-			cnt += (m - idx1);
-		}
+
+		int mid = (left + right) / 2;
+		int leftMin = init(arr, left, mid, node * 2);
+		int rightMin = init(arr, mid + 1, right, node * 2 + 1);
+		return tree[node] = func(leftMin, rightMin);
 	}
 
-	while (idx1 < m) {
-		tmp[idx3] = arr[idx1];
-		idx3++; idx1++;
+	void init(const int n) {
+		for (leaf = 1; n > leaf; leaf <<= 1);
+		tree.resize(leaf << 1);
 	}
 
-	while (idx2 < r) {
-		tmp[idx3] = arr[idx2];
-		idx3++; idx2++;
+	int update(int idx, int newVal, int node, int nodeLeft, int nodeRight) {
+		if (idx < nodeLeft || nodeRight < idx)
+			return tree[node];
+
+		if (nodeLeft == nodeRight)
+			return tree[node] = newVal;
+
+		int mid = (nodeLeft + nodeRight) / 2;
+
+		return tree[node] = func(update(idx, newVal, node * 2, nodeLeft, mid),
+			update(idx, newVal, node * 2 + 1, mid + 1, nodeRight));
 	}
 
-	for (int idx = l; idx < r; idx++) {
-		arr[idx] = tmp[idx];
+	int update(int idx, int newVal) {
+		return update(idx - 1, newVal, 1, 0, leaf - 1);
 	}
-}
 
-void merge_sort(int l, int r) {
-	if (r - l == 1)
-		return;
+	int query(int left, int right, int node, int nodeLeft, int nodeRight) {
+		if (right < nodeLeft || nodeRight < left)
+			return 0;
 
-	int mid = (r + l) / 2;
+		if (left <= nodeLeft && nodeRight <= right)
+			return tree[node];
 
-	merge_sort(l, mid);
-	merge_sort(mid, r);
-	merge(l, mid, r);
+		int mid = (nodeLeft + nodeRight) / 2;
 
-}
+		return func(query(left, right, node * 2, nodeLeft, mid),
+			query(left, right, node * 2 + 1, mid + 1, nodeRight));
+	}
+
+	int query(int left, int right) {
+		if (left > right)
+			return 0;
+		return query(left - 1, right - 1, 1, 0, leaf - 1);
+	}
+
+	int func(int a, int b) {
+		return a + b;
+	}
+};
+
+Seg seg;
 
 int main() {
 #ifndef ONLINE_JUDGE
@@ -80,12 +101,17 @@ int main() {
 	ios_base::sync_with_stdio(false); cin.tie(0); cout.tie(0);
 	//code start
 	cin >> n;
-	for (int i = 0; i < n; i++)
-		cin >> arr[i];
-	merge_sort(0, n);
+	seg.init(n);
+
+	int now;
+	for (int i = 0; i < n; i++) {
+		cin >> now;
+		seg.update(now, 1);
+		cnt += seg.query(now + 1, n);
+	}
+
 
 	cout << cnt;
-
 	//code end
 	return 0;
 }

@@ -1,6 +1,7 @@
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+#define _USE_MATH_DEFINES
 
 #include <algorithm>
 #include <cmath>
@@ -14,37 +15,39 @@
 #include <deque>
 using namespace std;
 
-#define f(i,n) for(int i=0;i<n;i++)
 #define all(v) (v).begin(),(v).end()
 using pii = pair<int, int>;
 using lint = long long;
 
 const int MOD = 1e9 + 7, INF = 987654321;
+const lint LINF = 987654321987654321;
 const int dr[] = { -1, 0, 1, 0 };
 const int dc[] = { 0, -1, 0, 1 };
-const double PI = 3.14159265359;
 
 int tc, cnt;
 int n;
-int visit[10001];
+int dist[10001];
 vector<pii> adj[10001];
-queue<int> q;
 
-void bfs(int root) {
+int* maxDist(int root) {
+	queue<int> q;
 	q.push(root);
+	memset(dist, -1, sizeof(dist));
+	dist[root] = 0;
 
-	while (q.size()) {
-		for (pii x : adj[q.front()]) {
-			if (x.first == root)
-				continue;
+	while (!q.empty()) {
+		int now = q.front();
+		q.pop();
 
-			if (visit[x.first] == 0) {
-				visit[x.first] = visit[q.front()] + x.second;
-				q.push(x.first);
+		for (pii next : adj[now]) {
+			if (dist[next.first] == -1) {
+				dist[next.first] = dist[now] + next.second;
+				q.push(next.first);
 			}
 		}
-		q.pop();
 	}
+
+	return max_element(dist, dist + n + 1);
 }
 
 int main() {
@@ -54,24 +57,16 @@ int main() {
 	ios_base::sync_with_stdio(false); cin.tie(0); cout.tie(0);
 	//code start
 	cin >> n;
-
-	for (int i = 1; i < n; i++) {
-		int p, c, v;
-		cin >> p >> c >> v;
-		adj[p].push_back({ c,v });
-		adj[c].push_back({ p,v });
+	int a, b, c;
+	for (int i = 0; i < n; i++) {
+		cin >> a >> b >> c;
+		adj[a].push_back({ b,c });
+		adj[b].push_back({ a,c });
 	}
 
-	int next_root;
+	int nextRoot = maxDist(1) - dist;
 
-	bfs(1);
-	next_root = max_element(visit, visit + n + 1) - visit;
-
-	fill(visit, visit + n + 1, 0);
-	bfs(next_root);
-
-	cout << *max_element(visit, visit + n + 1);
-
+	cout << *maxDist(nextRoot);
 	//code end
 	return 0;
 }

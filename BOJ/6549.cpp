@@ -1,6 +1,7 @@
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+#define _USE_MATH_DEFINES
 
 #include <algorithm>
 #include <cmath>
@@ -14,64 +15,48 @@
 #include <deque>
 using namespace std;
 
-#define f(i,n) for(int i=0;i<n;i++)
 #define all(v) (v).begin(),(v).end()
 using pii = pair<int, int>;
 using lint = long long;
 
 const int MOD = 1e9 + 7, INF = 987654321;
+const lint LINF = 987654321987654321;
 const int dr[] = { -1, 0, 1, 0 };
 const int dc[] = { 0, -1, 0, 1 };
-const double PI = 3.14159265359;
+const int mxn = 10000;
 
 int tc, cnt;
 int n;
-lint arr[100000];
+lint h[100001];
 
-lint solve(int l, int r) {
-	if (l == r) {
-		return arr[l];
-	}
+lint solve(lint left, lint right) {
+	if (left > right)
+		return 0LL;
+	if (left == right)
+		return h[left];
 
-	int m = (l + r) / 2;
-	
-	lint left = solve(l, m);
-	lint right = solve(m + 1, r);
+	lint mid = (left + right) / 2;
 
-	lint cur_h = min(arr[m], arr[m + 1]);
-	lint cur_w = 2;
-	lint cur_sq = cur_h * cur_w;
-	int idx_l = m;
-	int idx_r = m + 1;
+	lint ret = max(solve(left, mid), solve(mid + 1, right));
 
-	while (l < idx_l && idx_r < r) {
-		if (arr[idx_l - 1] > arr[idx_r + 1]) {
-			idx_l--;
-			cur_h = min(cur_h, arr[idx_l]);
+	lint l = mid;
+	lint r = mid + 1;
+	lint high = min(h[l], h[r]);
+	ret = max(ret, high * (r - l + 1));
+
+	while ((left < l) || (r < right)) {
+		if ((l != left) && ((r == right) || (h[l - 1] >= h[r + 1]))) {
+			l--;
+			high = min(high, h[l]);
+			ret = max(ret, high * (r - l + 1));
 		}
 		else {
-			idx_r++;
-			cur_h = min(cur_h, arr[idx_r]);
+			r++;
+			high = min(high, h[r]);
+			ret = max(ret, high * (r - l + 1));
 		}
-		cur_w++;
-		cur_sq = max(cur_sq, cur_h*cur_w);
 	}
-
-	while (l < idx_l) {
-		idx_l--;
-		cur_h = min(cur_h, arr[idx_l]);
-		cur_w++;
-		cur_sq = max(cur_sq, cur_h*cur_w);
-	}
-
-	while (idx_r < r) {
-		idx_r++;
-		cur_h = min(cur_h, arr[idx_r]);
-		cur_w++;
-		cur_sq = max(cur_sq, cur_h*cur_w);
-	}
-
-	return max(cur_sq, max(left, right));
+	return ret;
 }
 
 int main() {
@@ -82,15 +67,14 @@ int main() {
 	//code start
 	while (true) {
 		cin >> n;
-		if (n == 0)
-			break;
+		if (n == 0) break;
 
-		for (int i = 0; i < n; i++) 
-			cin >> arr[i];
-		
-		cout << solve(0, n-1) << '\n';
+		for (int i = 1; i <= n; i++)
+			cin >> h[i];
 
+		cout << solve(1, n) << '\n';
 	}
+
 	//code end
 	return 0;
 }

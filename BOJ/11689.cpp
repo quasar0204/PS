@@ -1,6 +1,7 @@
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+#define _USE_MATH_DEFINES
 
 #include <algorithm>
 #include <cmath>
@@ -14,19 +15,19 @@
 #include <deque>
 using namespace std;
 
-#define f(i,n) for(int i=0;i<n;i++)
 #define all(v) (v).begin(),(v).end()
 using pii = pair<int, int>;
 using lint = long long;
 
 const int MOD = 1e9 + 7, INF = 987654321;
+const lint LINF = 987654321987654321;
 const int dr[] = { -1, 0, 1, 0 };
 const int dc[] = { 0, -1, 0, 1 };
-const double PI = 3.14159265359;
+const int mxn = 1000001;
 
 int tc, cnt;
 lint n;
-bool prime[1000001];
+bool p[mxn];
 vector<lint> k;
 
 int main() {
@@ -37,34 +38,33 @@ int main() {
 	//code start
 	cin >> n;
 
-	for (int i = 2; i < 1000001; i++) {
-		if (!prime[i]) {
-			for (int j = i + i; j < 1000001; j += i)
-				prime[j] = true;
+	for (int i = 2; i * i < mxn; i++) {
+		if (!p[i]) {
+			for (int j = i + i; j < mxn; j += i) {
+				p[j] = true;
+			}
 		}
 	}
-	
+
 	lint N = n;
-	for (int i = 2; i < 1000001; i++) {
-		if (N == 1)
-			break;
-		if (!prime[i]) {
-			if (N % i == 0)
-				k.push_back(i);
-			while ((N % i) == 0) {
+	for (int i = 2; i < mxn; i++) {
+		if (!p[i] && (n % i) == 0) {
+			k.push_back(i);
+			while (N % i == 0) {
 				N /= i;
 			}
 		}
 	}
 
 	lint ans = n;
-	for (int i = 0; i < k.size(); i++) {
-		ans = ans - ans / k[i];
+	for (auto x : k) {
+		ans = ans - ans / x;
 	}
 	if (N != 1)
 		ans = ans - ans / N;
-	
+
 	cout << ans;
+
 	//code end
 	return 0;
 }
