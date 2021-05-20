@@ -1,0 +1,21 @@
+class Solution {
+public:
+    int findPeakElement(vector<int>& nums) {
+        int l = 0, r = nums.size() - 1;
+        int ret = 0;
+        
+        while(l < r - 1) {
+            int mid = (l + r) / 2;
+            
+            if (nums[mid - 1] < nums[mid] && nums[mid + 1] < nums[mid])
+                return mid;
+            else if (nums[mid + 1] < nums[mid])
+                r = mid - 1;
+            else
+                l = mid + 1;
+                
+        }
+        
+        return (nums[l] > nums[r]) ? l : r;
+    }
+};
